@@ -1,89 +1,91 @@
-# ai-game-referee-upliance
+
 # Rock–Paper–Scissors–Plus Game Referee
 
 **Assignment Submission – AI Product Engineer (Conversational Agents)**  
-**Company: upliance.ai**
+**Company: upliance.ai**  
+**Author: Mohammed Bilal M**
 
 ---
 
 ## Overview
 
-This project implements a minimal chatbot that acts as a referee for a best-of-three game of Rock–Paper–Scissors–Plus. The solution was built to demonstrate how I design reliable agents with clear logic, persistent state, and intelligent responses in a simple conversational loop.
+This project implements a minimal chatbot that acts as a referee for a short game of Rock–Paper–Scissors–Plus. The referee manages a best-of-3 match between the user and the bot, validates every move, tracks the score across turns, and ends the game automatically after three rounds. The implementation was intentionally kept simple to highlight logical correctness and clear agent design.
 
 ---
 
 ## Architecture
 
-The design follows three responsibilities:
+The solution is organized into three clearly separated parts:
 
-### 1. Intent Understanding
-The agent interprets what the user was trying to do and decides when a tool should be called.
+1. **Intent Understanding**  
+   User input from the CLI is normalized and interpreted through the validation function to understand what the player attempted to do.
 
-### 2. Game Logic
-Pure functions contain the fixed rules that determine the winner of each round.
+2. **Game Logic (Pure Functions)**  
+   - `determine_winner()` implements the fixed game outcome rules.  
+   - `choose_bot_move()` implements the opponent strategy.  
+   These functions have no side effects and can be tested independently.
 
-### 3. State Mutation
-All updates to rounds and scores happen through explicitly defined ADK tools.  
-This prevents keeping state only inside prompts and mirrors real product agents that must enforce constraints.
+3. **State Mutation (Tool Functions)**  
+   - `validate_move()` – checks valid moves and bomb-once constraint.  
+   - `resolve_round()` – decides the winner deterministically.  
+   - `update_game_state()` – performs all updates to the game state and history.  
+   Centralizing mutation ensured that the state is never kept only inside prompts.
 
 ---
 
 ## State Model
 
-The central state tracks:
+The game state is stored as an in-memory dictionary and tracks:
 
-- Current round number from 1 to 3  
-- User and bot scores  
-- Bomb-once restriction flags  
-- Move history for audit  
+- Current round number (1–3)  
+- User score and bot score  
+- Bomb usage flags for both players  
+- Move history for auditing  
 - Game termination flag
 
-The state is kept as an in-memory model as allowed by requirements.
+### Why this model
+
+- A single source of truth prevents state drift  
+- Flags enforce business constraints  
+- History enables debugging and future UX features
 
 ---
 
-## Tool Design
+## Key Design Decisions
 
-Three tools were created:
+- **Invalid Input Handling:**  
+  Any move outside the allowed set wastes the round but the loop continues safely.
 
-- **validate_and_process_move** – validates input and bomb restrictions  
-- **get_game_state** – reads state without side effects  
-- **reset_game** – prepares new match
+- **Bomb Restriction:**  
+  The special bomb move can be used only once per player per game.
 
-Error handling ensures invalid inputs only waste rounds and never crash.
+- **Termination:**  
+  The game ends automatically after exactly 3 rounds.
 
----
-
-## Key Decisions
-
-- Users never reach dead ends  
-- Tool granularity kept atomic  
-- Bot strategy kept lightweight  
-- Single file delivery for easy review
+- **Delivery Format:**  
+  A single Python file was used for easy reviewer evaluation.
 
 ---
 
-## Tradeoffs
+## Tradeoffs Made
 
-| Decision | Pros | Cons | Reason |
-|---------|------|------|-------|
-| Global state | Simple, clear | Not thread-safe | Assignment scope |
-| Random opponent | Fast | Not optimal | Focus on referee |
-| CLI interface | Minimal | No rich UI | Allowed |
-| Single file | Easy review | Less modular | Simpler deliverable |
+| Area | Pros | Cons |
+|-----|-----|-----|
+| Global in-memory state | Simple and clear | Not concurrent-safe |
+| Random opponent AI | Fast implementation | Not optimal strategy |
+| CLI interface | Minimal setup | No rich UI |
+| Single file | Easy review | Less modular |
 
 ---
 
-## Improvements Planned
+## What I Would Improve With More Time
 
-If more time were available:
-
-1. Better parsing for natural sentences  
-2. Typed schemas for tool responses  
-3. Unit tests for bomb cases  
-4. Session-scoped state  
-5. Observability logs  
-6. Difficulty levels
+- Fuzzy parsing for natural sentences  
+- Typed schemas for responses  
+- Unit tests for all edge cases  
+- Session-scoped state for concurrency  
+- Observability logs  
+- Difficulty levels for opponent
 
 ---
 
@@ -96,16 +98,15 @@ If more time were available:
 | Bomb beats all | ✅ |
 | Bomb once per player | ✅ |
 | Invalid wastes round | ✅ |
-| Auto end after 3 rounds | ✅ |
-| Google ADK usage | ✅ |
-| Explicit tools | ✅ |
-| State not in prompt | ✅ |
+| Auto-end after 3 rounds | ✅ |
+| Explicit tools defined | ✅ |
+| State not only in prompt | ✅ |
 | Separation of layers | ✅ |
-| Rules explained ≤5 lines | ✅ |
-| Final result | ✅ |
+| Final result shown | ✅ |
 
 ---
 
-## Closing
+## Conclusion
 
-This assignment reflects my approach to applied AI: thinking through constraints and user intent first, then expressing them in simple engineering logic suitable for production agents.
+This assignment reflects my approach to applied AI systems: by thinking through rules and constraints first, encoding them in predictable logic, and ensuring that users never encounter dead ends. The same reasoning style is suitable for real-world conversational agents such as smart cooking companions.
+
